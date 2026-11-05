@@ -6,77 +6,123 @@
   <title>ProcessTimer v1.0</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#0d1117">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>ProcessTimer v1.0</h1>
-      <p class="subtitle">Offline Millisecond Precision Tracker</p>
-      <div class="header-actions">
-        <button id="export-csv" class="btn btn-secondary">Export All CSV</button>
-        <span class="badge">Offline Ready</span>
-      </div>
-    </header>
-
-    <main>
-      <section class="timer-section">
+  <div class="app-layout">
+    <!-- Left Panel: Main Timing Dashboard -->
+    <div class="panel-left">
+      <section class="timer-card">
+        <div class="timer-header">
+          <label for="task-label">PROCESS / TASK LABEL</label>
+          <span id="status-badge" class="status-badge">PAUSED</span>
+        </div>
         <div class="input-group">
-          <input type="text" id="task-label" placeholder="Process / Task Label Ready">
+          <input type="text" id="task-label" placeholder="e.g. Batch Assembly #402, Page Load Test, CNC Cycle...">
+          <span class="edit-icon">✎</span>
         </div>
-        <div id="display" class="time-display">00:00:00.000</div>
+        
+        <div id="display" class="time-display">00:00:00<span class="ms">.000</span></div>
+        
         <div class="split-info">
-          <p>Current Lap: <span id="current-lap-display" class="bold">00:00:00.000</span></p>
-          <p>• Laps Counted: <span id="laps-count" class="bold">0</span></p>
+          <span>Current Lap: <strong id="current-lap-display">00:00:00.000</strong></span>
+          <span class="dot">•</span>
+          <span>Laps Counted: <strong id="laps-count">0</strong></span>
         </div>
-        <div class="controls">
-          <button id="start-pause" class="btn btn-primary">Start</button>
-          <button id="lap" class="btn btn-success" disabled>Lap</button>
-          <button id="reset" class="btn btn-danger">Reset</button>
-          <button id="save-record" class="btn btn-info" disabled>Save</button>
+        
+        <div class="controls-grid">
+          <button id="start-pause" class="btn btn-primary">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> <span id="btn-text">Start</span>
+          </button>
+          <button id="lap" class="btn btn-secondary" disabled>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg> Lap
+          </button>
+          <button id="reset" class="btn btn-secondary">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg> Reset
+          </button>
         </div>
-        <div class="shortcuts">
-          <p><code>Space</code> Start/Pause | <code>L</code> Lap | <code>R</code> Reset</p>
+        
+        <div class="save-wrapper">
+          <button id="save-record" class="btn btn-success" disabled>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> Save
+          </button>
+        </div>
+        
+        <div class="shortcuts-legend">
+          <span><code class="key">Space</code> Start/Pause</span>
+          <span><code class="key">L</code> Lap</span>
+          <span><code class="key">R</code> Reset</span>
         </div>
       </section>
 
-      <section class="laps-section">
-        <h2>Current Laps Split</h2>
-        <div class="stats-grid">
-          <div class="stat-card fast">Fastest <span id="fastest-lap">--</span></div>
-          <div class="stat-card">Average <span id="average-lap">--</span></div>
-          <div class="stat-card slow">Slowest <span id="slowest-lap">--</span></div>
+      <section class="laps-card">
+        <div class="card-header">
+          <div class="title-with-icon">
+            <svg class="header-icon" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0-8h14V7H7v2z"/></svg>
+            <h3>Current Laps Split</h3>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot-indicator green"></span>Fast</span>
+            <span class="legend-item"><span class="dot-indicator red"></span>Slow</span>
+          </div>
         </div>
-        <div class="table-container">
+        
+        <div class="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Lap #</th>
-                <th>Lap Duration</th>
-                <th>Overall Split</th>
+                <th>LAP #</th>
+                <th>LAP DURATION</th>
+                <th class="text-right">OVERALL SPLIT</th>
               </tr>
             </thead>
             <tbody id="laps-table-body">
               <tr id="no-laps-row">
-                <td colspan="3" class="text-muted">No laps recorded yet. Click <strong>Lap</strong> during timing to record splits.</td>
+                <td colspan="3" class="empty-state">No laps recorded yet. Click Lap during timing.</td>
               </tr>
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section class="saved-section">
-        <div class="section-header">
-          <h2>Saved Records (<span id="saved-count">0</span>)</h2>
-          <button id="clear-all" class="btn btn-danger-text">Clear All</button>
+        
+        <div class="stats-footer-grid">
+          <div class="stat-block fast">
+            <span class="label">FASTEST</span>
+            <span id="fastest-lap">--</span>
+          </div>
+          <div class="stat-block average">
+            <span class="label">AVERAGE</span>
+            <span id="average-lap">--</span>
+          </div>
+          <div class="stat-block slow">
+            <span class="label">SLOWEST</span>
+            <span id="slowest-lap">--</span>
+          </div>
         </div>
-        <div id="saved-records-list" class="records-list"></div>
-        <footer>
-          <p>Data stored locally in your browser cache (LocalStorage).</p>
-          <p>Process Stopwatch • Millisecond Precise</p>
-        </footer>
       </section>
-    </main>
+    </div>
+
+    <!-- Right Panel: Historical Saved Records Module -->
+    <div class="panel-right">
+      <section class="records-card">
+        <div class="records-header">
+          <div class="title-count">
+            <svg class="header-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v4z"/></svg>
+            <h3>Saved Records <span id="saved-count" class="count-badge">0</span></h3>
+          </div>
+          <button id="clear-all" class="btn-clear-link">
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> Clear All
+          </button>
+        </div>
+        
+        <div class="search-box">
+          <input type="text" id="search-records" placeholder="🔍 Search process name...">
+        </div>
+        
+        <div id="saved-records-list" class="records-feed">
+          <!-- Dynamically filled with templates -->
+        </div>
+      </section>
+    </div>
   </div>
   <script src="app.js"></script>
 </body>
