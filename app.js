@@ -293,25 +293,32 @@ ${r.rawLaps.length > 0 ? <button class="toggle-details-link" onclick="toggleLapD
 ${r.rawLaps.map(l => <div class="nested-lap-line"><span>Lap ${l.number}:</span> <span>${formatTime(l.duration)}</span></div>).join('')}
 `).reverse().join('');
 }
-// Operational Element Direct Action Observers
-startPauseBtn.addEventListener('click', startPause);
-lapBtn.addEventListener('click', recordLap);
-resetBtn.addEventListener('click', resetTimer);
-saveBtn.addEventListener('click', saveRecord);
-searchRecords.addEventListener('input', renderSavedRecords);
-document.getElementById('clear-all').addEventListener('click', () => {
-if (confirm("Are you sure you want to wipe all stored dashboard data?")) {
-savedRecords = [];
-localStorage.removeItem('savedRecords');
-renderSavedRecords();
+// Safe Event Listeners with Null-Checks to Prevent App Crashes
+if (startPauseBtn) startPauseBtn.addEventListener('click', startPause);
+if (lapBtn) lapBtn.addEventListener('click', recordLap);
+if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+if (saveBtn) saveBtn.addEventListener('click', saveRecord);
+if (searchRecords) searchRecords.addEventListener('input', renderSavedRecords);
+
+const clearAllBtn = document.getElementById('clear-all');
+if (clearAllBtn) {
+  clearAllBtn.addEventListener('click', () => {
+    if (confirm("Are you sure you want to wipe all stored dashboard data?")) {
+      savedRecords = [];
+      localStorage.removeItem('savedRecords');
+      renderSavedRecords();
+    }
+  });
 }
-});
+
 // Structural Keyboard Driver Intercept Mapping Matrix
 window.addEventListener('keydown', (e) => {
-if (document.activeElement === taskLabel || document.activeElement === searchRecords) return;
-if (e.code === 'Space') { e.preventDefault(); startPause(); }
-if (e.key.toLowerCase() === 'l') recordLap();
-if (e.key.toLowerCase() === 'r') resetTimer();
+  if (document.activeElement === taskLabel || document.activeElement === searchRecords) return;
+  if (e.code === 'Space') { e.preventDefault(); startPause(); }
+  if (e.key.toLowerCase() === 'l') recordLap();
+  if (e.key.toLowerCase() === 'r') resetTimer();
 });
+
 // Bootstrap Render Cycle
 renderSavedRecords();
+
