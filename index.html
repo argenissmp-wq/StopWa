@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProcessTimer v1.0</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ProcessTimer v1.0</h1>
+      <p class="subtitle">Offline Millisecond Precision Tracker</p>
+      <div class="header-actions">
+        <button id="export-csv" class="btn btn-secondary">Export All CSV</button>
+        <span class="badge">Offline Ready</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="timer-section">
+        <div class="input-group">
+          <input type="text" id="task-label" placeholder="Process / Task Label Ready">
+        </div>
+        <div id="display" class="time-display">00:00:00.000</div>
+        <div class="split-info">
+          <p>Current Lap: <span id="current-lap-display" class="bold">00:00:00.000</span></p>
+          <p>• Laps Counted: <span id="laps-count" class="bold">0</span></p>
+        </div>
+        <div class="controls">
+          <button id="start-pause" class="btn btn-primary">Start</button>
+          <button id="lap" class="btn btn-success" disabled>Lap</button>
+          <button id="reset" class="btn btn-danger">Reset</button>
+          <button id="save-record" class="btn btn-info" disabled>Save</button>
+        </div>
+        <div class="shortcuts">
+          <p><code>Space</code> Start/Pause | <code>L</code> Lap | <code>R</code> Reset</p>
+        </div>
+      </section>
+
+      <section class="laps-section">
+        <h2>Current Laps Split</h2>
+        <div class="stats-grid">
+          <div class="stat-card fast">Fastest <span id="fastest-lap">--</span></div>
+          <div class="stat-card">Average <span id="average-lap">--</span></div>
+          <div class="stat-card slow">Slowest <span id="slowest-lap">--</span></div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Lap #</th>
+                <th>Lap Duration</th>
+                <th>Overall Split</th>
+              </tr>
+            </thead>
+            <tbody id="laps-table-body">
+              <tr id="no-laps-row">
+                <td colspan="3" class="text-muted">No laps recorded yet. Click <strong>Lap</strong> during timing to record splits.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="saved-section">
+        <div class="section-header">
+          <h2>Saved Records (<span id="saved-count">0</span>)</h2>
+          <button id="clear-all" class="btn btn-danger-text">Clear All</button>
+        </div>
+        <div id="saved-records-list" class="records-list"></div>
+        <footer>
+          <p>Data stored locally in your browser cache (LocalStorage).</p>
+          <p>Process Stopwatch • Millisecond Precise</p>
+        </footer>
+      </section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
