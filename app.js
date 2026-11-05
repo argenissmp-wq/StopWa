@@ -1,6 +1,8 @@
+// Global State Management Matrix Variables
 let startTime = 0, elapsedTime = 0, timerInterval = null;
 let lapStartTime = 0, laps = [], savedRecords = JSON.parse(localStorage.getItem('savedRecords')) || [];
 
+// Core DOM Document Selector Linkers
 const display = document.getElementById('display');
 const currentLapDisplay = document.getElementById('current-lap-display');
 const lapsCount = document.getElementById('laps-count');
@@ -16,12 +18,23 @@ const noLapsRow = document.getElementById('no-laps-row');
 const searchRecords = document.getElementById('search-records');
 const savedRecordsList = document.getElementById('saved-records-list');
 
+// Register Progressive Web App Service Worker for Offline Functionality
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed: ', err));
   });
 }
 
+// Global Window Bindings for Dynamic In-line Element Click Handlers
+window.downloadIndividualCSV = downloadIndividualCSV;
+window.deleteRecord = deleteRecord;
+window.toggleLapDetailsVisibility = toggleLapDetailsVisibility;
+
+/**
+ * Transforms millisecond values into standard operational formats (HH:MM:SS.mmm)
+ * @param {number} ms - Input values in milliseconds
+ * @returns {string} Formatted output duration string
+ */
 function formatTime(ms) {
   const hours = Math.floor(ms / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
@@ -30,6 +43,9 @@ function formatTime(ms) {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}`;
 }
 
+/**
+ * Updates application visual frames at a high frequency cycle rate
+ */
 function updateDisplays() {
   const now = performance.now();
   const total = elapsedTime + (startTime ? now - startTime : 0);
@@ -42,11 +58,13 @@ function updateDisplays() {
   currentLapDisplay.textContent = formatTime(lapTime);
 }
 
+/**
+ * Handles primary clock toggle executions without breaking historical context state
+ */
 function startPause() {
   if (!timerInterval) {
     startTime = performance.now();
     timerInterval = setInterval(updateDisplays, 10);
-    btnText.textContent = 'Pause';
     startPauseBtn.className = 'btn btn-secondary';
     startPauseBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> <span id="btn-text">Pause</span>`;
     statusBadge.textContent = 'RUNNING';
@@ -67,6 +85,9 @@ function startPause() {
   }
 }
 
+/**
+ * Captures point-in-time intervals from the running timeline canvas
+ */
 function recordLap() {
   if (!timerInterval) return;
   const now = performance.now();
@@ -81,6 +102,9 @@ function recordLap() {
   updateStats();
 }
 
+/**
+ * Updates the visible lap table log
+ */
 function renderLaps() {
   if (laps.length === 0) {
     lapsTableBody.innerHTML = '';
@@ -107,6 +131,9 @@ function renderLaps() {
   }).reverse().join('');
 }
 
+/**
+ * Computes split analytics profiles
+ */
 function updateStats() {
   if (laps.length === 0) return;
   const durations = laps.map(l => l.duration);
@@ -119,6 +146,9 @@ function updateStats() {
   document.getElementById('average-lap').textContent = formatTime(avg);
 }
 
+/**
+ * Clears core state registers and rolls counter states back to zero
+ */
 function resetTimer() {
   elapsedTime = 0; startTime = 0;
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
@@ -139,6 +169,9 @@ function resetTimer() {
   document.getElementById('average-lap').textContent = '--';
 }
 
+/**
+ * Saves tracking records to cache storage without resetting the active running stopwatch
+ */
 function saveRecord() {
   if (elapsedTime === 0) return;
   
@@ -160,36 +193,46 @@ function saveRecord() {
   localStorage.setItem('savedRecords', JSON.stringify(savedRecords));
   renderSavedRecords();
   
-  // Custom logic update: We do NOT reset the clock state on execution here!
+  // Disable save button to prevent saving duplicates of the exact same timestamp
   saveBtn.disabled = true; 
 }
 
+/**
+ * Generates structured text matching your spreadsheet structure
+ * @param {Object} record - The target record dataset item
+ * @returns {string} Cell-by-cell structural content payload string
+ */
 function generateExactCSV(record) {
   let csvContent = "";
   
-  // Block 1: Overview Summary Meta
+  // Row Block 1: Structured Metadata Overview
   csvContent += `Process Name,${record.label},\n`;
   csvContent += `Recorded Date,${record.dateTime},\n`;
   
-  const parsedDur = record.duration.substring(3); // Stripping index hours context to replicate MM:SS.d exactly
+  // Truncate structural hour values to match image layout specs (MM:SS.d)
+  const parsedDur = record.duration.substring(3); 
   csvContent += `Total Duration,${parsedDur},\n`;
   csvContent += `Total Duration (ms),${record.durationMs},\n`;
   csvContent += `Total Laps,${record.lapsCount},\n\n`;
   
-  // Block 2: Explicit Data Grid Labels
+  // Row Block 2: Grid Header Element Row 
   csvContent += `Lap Number,Lap Duration,Cumulative Split,Lap Duration (ms)\n`;
   
-  // Block 3: Sequential Matrix Loop
+  // Row Block 3: Dynamic Data Rows Loop
   record.rawLaps.forEach((l) => {
     const formattedDuration = formatTime(l.duration).substring(3);
     const formattedOverall = formatTime(l.overall).substring(3);
-    const rawMs = Math.round(l.duration);
+    const rawMs = (l.duration).toFixed(1);
     csvContent += `${l.number},${formattedDuration},${formattedOverall},${rawMs}\n`;
   });
   
   return csvContent;
 }
 
+/**
+ * Exports data matrix row directly to client desktop environments
+ * @param {number} id - Target database unique identifier signature
+ */
 function downloadIndividualCSV(id) {
   const target = savedRecords.find(r => r.id === id);
   if (!target) return;
@@ -206,46 +249,69 @@ function downloadIndividualCSV(id) {
   document.body.removeChild(downloadLink);
 }
 
+/**
+ * Removes individual tracked elements from local browser cache arrays
+ * @param {number} id - Record data structural signature identity
+ */
 function deleteRecord(id) {
   savedRecords = savedRecords.filter(r => r.id !== id);
   localStorage.setItem('savedRecords', JSON.stringify(savedRecords));
   renderSavedRecords();
 }
 
+/**
+ * Controls localized nested lap table display drawers
+• @param {number} id - Record tracking unique identification integer
+*/
 function toggleLapDetailsVisibility(id) {
-  const container = document.getElementById(`details-${id}`);
-  if (container) container.classList.toggle('active');
+const container = document.getElementById(details-${id});
+if (container) container.classList.toggle('active');
 }
-
+/**
+• Generates historical dashboard card listings based on user lookup strings
+*/
 function renderSavedRecords() {
-  const query = searchRecords.value.toLowerCase();
-  const filtered = savedRecords.filter(r => r.label.toLowerCase().includes(query));
-  
-  document.getElementById('saved-count').textContent = savedRecords.length;
-  
-  if (filtered.length === 0) {
-    savedRecordsList.innerHTML = `<div class="empty-state">No matching tracking records found.</div>`;
-    return;
-  }
-  
-  savedRecordsList.innerHTML = filtered.map(r => `
-    <div class="record-card-item">
-      <div class="meta-row">
-        <div>
-          <h4>${r.label}</h4>
-          <span class="date-stamp">${r.dateTime}</span>
-        </div>
-      </div>
-      <div class="duration-row">
-        <span>⏱ ${r.duration}</span>
-        <span class="laps-count-meta">Laps: ${r.lapsCount}</span>
-      </div>
-      
-      ${r.rawLaps.length > 0 ? `<button class="toggle-details-link" onclick="toggleLapDetailsVisibility(${r.id})">▶ View Lap Details (${r.rawLaps.length})</button>` : ''}
-      
-      <div id="details-${r.id}" class="nested-laps-box">
-        ${r.rawLaps.map(l => `<div class="nested-lap-line"><span>Lap ${l.number}:</span> <span>${formatTime(l.duration)}</span></div>`).join('')}
-      </div>
+const query = searchRecords.value.toLowerCase();
+const filtered = savedRecords.filter(r => r.label.toLowerCase().includes(query));
+document.getElementById('saved-count').textContent = savedRecords.length;
+if (filtered.length === 0) {
+savedRecordsList.innerHTML = <div class="empty-state">No matching tracking records found.</div>;
+return;
+}
+savedRecordsList.innerHTML = filtered.map(r => `
 
-      <div class="actions-absolute">
-        <button class="action-btn" title="Download CSV" onclick="downloadIndividualCSV(${r.id})">
+
+
+${r.label}
+${r.dateTime}
+
+
+
+⏱ ${r.duration}
+Laps: ${r.lapsCount}
+${r.rawLaps.length > 0 ? <button class="toggle-details-link" onclick="toggleLapDetailsVisibility(${r.id})">▶ View Lap Details (${r.rawLaps.length})</button> : ''}
+${r.rawLaps.map(l => <div class="nested-lap-line"><span>Lap ${l.number}:</span> <span>${formatTime(l.duration)}</span></div>).join('')}
+`).reverse().join('');
+}
+// Operational Element Direct Action Observers
+startPauseBtn.addEventListener('click', startPause);
+lapBtn.addEventListener('click', recordLap);
+resetBtn.addEventListener('click', resetTimer);
+saveBtn.addEventListener('click', saveRecord);
+searchRecords.addEventListener('input', renderSavedRecords);
+document.getElementById('clear-all').addEventListener('click', () => {
+if (confirm("Are you sure you want to wipe all stored dashboard data?")) {
+savedRecords = [];
+localStorage.removeItem('savedRecords');
+renderSavedRecords();
+}
+});
+// Structural Keyboard Driver Intercept Mapping Matrix
+window.addEventListener('keydown', (e) => {
+if (document.activeElement === taskLabel || document.activeElement === searchRecords) return;
+if (e.code === 'Space') { e.preventDefault(); startPause(); }
+if (e.key.toLowerCase() === 'l') recordLap();
+if (e.key.toLowerCase() === 'r') resetTimer();
+});
+// Bootstrap Render Cycle
+renderSavedRecords();
